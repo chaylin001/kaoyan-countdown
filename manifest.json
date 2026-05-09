@@ -1,0 +1,25 @@
+{
+  "name": "考研倒计时",
+  "short_name": "考研倒计时",
+  "description": "2026年全国硕士研究生招生考试倒计时",
+  "start_url": "/kaoyan-countdown/",
+  "scope": "/kaoyan-countdown/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a1714",
+  "background_color": "#faf6f0",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
