@@ -510,6 +510,31 @@
     100% { transform: scale(1); }
   }
 
+  /* ── Mother's Day entry button ── */
+  .mothers-day-entry {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 2.8rem;
+    height: 2.8rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 12px var(--shadow);
+    transition: all 0.25s ease;
+    animation: heartBeat 1.5s ease-in-out infinite;
+  }
+  .mothers-day-entry:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(181, 52, 58, 0.2);
+  }
+
   /* ── Responsive ── */
   @media (max-width: 600px) {
     .container { padding: 2rem 1.2rem; gap: 2rem; }
@@ -800,11 +825,12 @@
   // ── Mother's Day Easter Egg (2026-05-10 only) ──
   (function() {
     var now = new Date();
-    // 用 UTC+8 判断中国日期，兼容所有浏览器
     var utc = now.getTime() + now.getTimezoneOffset() * 60000;
     var cn = new Date(utc + 8 * 3600000);
     var isToday = (cn.getFullYear() === 2026 && cn.getMonth() === 4 && cn.getDate() === 10);
-    if (isToday) {
+
+    function showCard() {
+      if (document.querySelector('.mothers-day-overlay')) return;
       var overlay = document.createElement('div');
       overlay.className = 'mothers-day-overlay';
       overlay.innerHTML =
@@ -824,6 +850,19 @@
         setTimeout(function() { overlay.remove(); }, 400);
       });
       document.body.appendChild(overlay);
+    }
+
+    if (isToday) {
+      showCard();
+      var entry = document.createElement('div');
+      entry.className = 'mothers-day-entry';
+      entry.innerHTML = '&#10084;&#65039;';
+      entry.title = '母亲节祝福';
+      entry.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showCard();
+      });
+      document.body.appendChild(entry);
     }
   })();
 
