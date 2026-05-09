@@ -404,6 +404,97 @@
   body.focus-mode .focus-hint,
   body.focus-mode .seal-border { opacity: 0; transition: opacity 0.4s; }
 
+  /* ── Mother's Day Easter Egg ── */
+  .mothers-day-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 23, 20, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: overlayIn 0.6s ease-out both;
+    cursor: pointer;
+  }
+  .mothers-day-card {
+    background: var(--paper);
+    max-width: 420px;
+    width: 90%;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 80px rgba(26, 23, 20, 0.3);
+    animation: cardIn 0.8s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .mothers-day-card::before {
+    content: '';
+    position: absolute;
+    top: -3px; right: 1.5rem;
+    width: 2rem; height: 2rem;
+    border-right: 2px solid var(--vermillion);
+    border-top: 2px solid var(--vermillion);
+    opacity: 0.5;
+  }
+  .mothers-day-card::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 1.5rem;
+    width: 2rem; height: 2rem;
+    border-left: 2px solid var(--vermillion);
+    border-bottom: 2px solid var(--vermillion);
+    opacity: 0.5;
+  }
+  .mothers-day-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    animation: heartBeat 1.2s ease-in-out infinite;
+  }
+  .mothers-day-title {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', '楷体', serif;
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    color: var(--vermillion);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .mothers-day-date {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 1.2rem;
+  }
+  .mothers-day-msg {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', '楷体', serif;
+    font-size: clamp(1rem, 3.5vw, 1.35rem);
+    color: var(--ink);
+    line-height: 2;
+    letter-spacing: 0.05em;
+  }
+  .mothers-day-close {
+    margin-top: 1.5rem;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.12em;
+    opacity: 0.5;
+  }
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    15%      { transform: scale(1.15); }
+    30%      { transform: scale(1); }
+    45%      { transform: scale(1.1); }
+    60%      { transform: scale(1); }
+  }
+
   /* ── Animations ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
@@ -705,6 +796,32 @@
     setTimeout(function() { hint.classList.remove('show'); }, 10000);
     hint.addEventListener('click', function() { hint.classList.remove('show'); });
   }
+
+  // ── Mother's Day Easter Egg (2026-05-10 only) ──
+  (function() {
+    var now = new Date();
+    if (now.getFullYear() === 2026 && now.getMonth() === 4 && now.getDate() === 10) {
+      var overlay = document.createElement('div');
+      overlay.className = 'mothers-day-overlay';
+      overlay.innerHTML =
+        '<div class="mothers-day-card">' +
+          '<div class="mothers-day-icon">&#10084;&#65039;</div>' +
+          '<div class="mothers-day-title">母亲节快乐</div>' +
+          '<div class="mothers-day-date">2026 · 五月 · 第二个星期日</div>' +
+          '<div class="mothers-day-msg">' +
+            '祝天下所有的妈妈<br>母亲节快乐<br><br>' +
+            '特别是我的妈妈<br>我爱你' +
+          '</div>' +
+          '<div class="mothers-day-close">点击任意处关闭</div>' +
+        '</div>';
+      overlay.addEventListener('click', function() {
+        overlay.style.transition = 'opacity 0.4s';
+        overlay.style.opacity = '0';
+        setTimeout(function() { overlay.remove(); }, 400);
+      });
+      document.body.appendChild(overlay);
+    }
+  })();
 
   // ── Init ──
   updateCountdown();
