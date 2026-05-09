@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>考研倒计时</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #faf6f0;
+    --paper-deep: #f0e8d6;
+    --ink: #1a1714;
+    --ink-light: #4a4540;
+    --ink-muted: #8a8076;
+    --vermillion: #b5343a;
+    --vermillion-glow: #d44a50;
+    --gold: #c4a45a;
+    --border: #e0d8ca;
+    --shadow: rgba(26, 23, 20, 0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', 'STSong', 'SimSun', 'Songti SC', '宋体', serif;
+    background-color: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Ink wash ambient background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 30%, rgba(180, 160, 130, 0.15) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 80% at 80% 70%, rgba(160, 140, 120, 0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(200, 180, 150, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Grain texture ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Main container ── */
+  .container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 780px;
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  /* ── Decorative seal border ── */
+  .seal-border {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: -1;
+    border: 1px solid var(--border);
+    opacity: 0.5;
+  }
+  .seal-border::after {
+    content: '';
+    position: absolute;
+    top: -3px; right: 2rem;
+    width: 2.5rem; height: 2.5rem;
+    border-right: 2px solid var(--vermillion);
+    border-top: 2px solid var(--vermillion);
+    opacity: 0.4;
+  }
+  .seal-border::before {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 2rem;
+    width: 2.5rem; height: 2.5rem;
+    border-left: 2px solid var(--vermillion);
+    border-bottom: 2px solid var(--vermillion);
+    opacity: 0.4;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    animation: fadeDown 0.8s ease-out both;
+  }
+  .header .exam-name {
+    font-size: 0.85rem;
+    letter-spacing: 0.35em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .header h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--ink);
+    position: relative;
+    display: inline-block;
+  }
+  .header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -6px; left: 50%;
+    transform: translateX(-50%);
+    width: 2.5rem;
+    height: 2px;
+    background: var(--vermillion);
+    border-radius: 1px;
+  }
+
+  /* ── Countdown ── */
+  .countdown {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    animation: fadeUp 0.8s 0.15s ease-out both;
+  }
+  .countdown-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 5rem;
+  }
+  .countdown-number {
+    font-family: 'Noto Serif SC', 'STSong', 'SimSun', 'Georgia', serif;
+    font-size: clamp(2.8rem, 8vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    position: relative;
+    transition: transform 0.15s ease-out;
+  }
+  .countdown-number.pulse {
+    animation: numberPulse 0.3s ease-out;
+  }
+  .countdown-label {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.2em;
+    margin-top: 0.5rem;
+    font-weight: 400;
+  }
+  .countdown-separator {
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 300;
+    color: var(--ink-muted);
+    line-height: 1;
+    padding-top: 0.1rem;
+    opacity: 0.4;
+  }
+
+  /* ── Exam date badge ── */
+  .exam-badge {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    animation: fadeUp 0.8s 0.3s ease-out both;
+  }
+  .exam-badge .dot {
+    width: 5px; height: 5px;
+    background: var(--vermillion);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .exam-badge .line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .exam-badge .date-text {
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+  }
+
+  /* ── Progress ── */
+  .progress-section {
+    width: 100%;
+    max-width: 420px;
+    animation: fadeUp 0.8s 0.45s ease-out both;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.1em;
+  }
+  .progress-header .percent {
+    color: var(--vermillion);
+    font-weight: 600;
+  }
+  .progress-track {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--vermillion), var(--vermillion-glow));
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translate(50%, -50%);
+    width: 8px; height: 8px;
+    background: var(--vermillion);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(181, 52, 58, 0.4);
+  }
+  .prep-days {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Quote ── */
+  .quote-section {
+    text-align: center;
+    animation: fadeUp 0.8s 0.6s ease-out both;
+    padding: 1.5rem 1rem;
+    position: relative;
+  }
+  .quote-mark {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', '楷体', 'Noto Serif SC', serif;
+    font-size: 3rem;
+    color: var(--vermillion);
+    opacity: 0.25;
+    line-height: 1;
+    height: 1.5rem;
+  }
+  .quote-text {
+    font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', '楷体', 'Noto Serif SC', serif;
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    color: var(--ink);
+    line-height: 1.7;
+    letter-spacing: 0.06em;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .quote-source {
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.12em;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.15em;
+    opacity: 0.6;
+    animation: fadeUp 0.8s 0.75s ease-out both;
+  }
+
+  /* ── Fullscreen focus mode ── */
+  .focus-hint {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    opacity: 0.35;
+    letter-spacing: 0.1em;
+    z-index: 10;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    user-select: none;
+  }
+  .focus-hint:hover { opacity: 0.7; }
+
+  body.focus-mode .header,
+  body.focus-mode .exam-badge,
+  body.focus-mode .progress-section,
+  body.focus-mode .quote-section,
+  body.focus-mode .footer,
+  body.focus-mode .focus-hint,
+  body.focus-mode .seal-border { opacity: 0; transition: opacity 0.4s; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes numberPulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.06); color: var(--vermillion); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .container { padding: 2rem 1.2rem; gap: 2rem; }
+    .countdown { gap: 0.6rem; }
+    .countdown-block { min-width: 3.8rem; }
+    .countdown-separator { display: none; }
+    .seal-border { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="seal-border"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="exam-name">全国硕士研究生招生考试</div>
+    <h1>考研倒计时</h1>
+  </div>
+
+  <!-- Countdown -->
+  <div class="countdown">
+    <div class="countdown-block">
+      <span class="countdown-number" id="days">000</span>
+      <span class="countdown-label">天</span>
+    </div>
+    <span class="countdown-separator">:</span>
+    <div class="countdown-block">
+      <span class="countdown-number" id="hours">00</span>
+      <span class="countdown-label">时</span>
+    </div>
+    <span class="countdown-separator">:</span>
+    <div class="countdown-block">
+      <span class="countdown-number" id="minutes">00</span>
+      <span class="countdown-label">分</span>
+    </div>
+    <span class="countdown-separator">:</span>
+    <div class="countdown-block">
+      <span class="countdown-number" id="seconds">00</span>
+      <span class="countdown-label">秒</span>
+    </div>
+  </div>
+
+  <!-- Exam date -->
+  <div class="exam-badge">
+    <span class="dot"></span>
+    <span class="line"></span>
+    <span class="date-text" id="targetDate">2026年12月26日 · 上午8:30</span>
+    <span class="line"></span>
+    <span class="dot"></span>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <span>备考进度</span>
+      <span class="percent" id="progressPercent">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="prep-days" id="prepDays">今天是备考第 1 天</div>
+  </div>
+
+  <!-- Quote -->
+  <div class="quote-section">
+    <div class="quote-mark">"</div>
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-source" id="quoteSource"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">研途漫漫 · 功不唐捐</div>
+</div>
+
+<div class="focus-hint" id="focusToggle" title="点击切换专注模式">专注模式</div>
+
+<script>
+(function() {
+  // ── Config ──
+  const EXAM_DATE = new Date('2026-12-26T08:30:00+08:00');
+  const PREP_START = new Date('2026-03-01T00:00:00+08:00');
+
+  // ── Quotes pool ──
+  const quotes = [
+    { text: '星光不问赶路人，时光不负有心人。', source: '佚名' },
+    { text: '每一个不曾起舞的日子，都是对生命的辜负。', source: '尼采' },
+    { text: '既然选择了远方，便只顾风雨兼程。', source: '汪国真' },
+    { text: '考研是一场孤独的修行，但孤独之后便是光芒万丈。', source: '佚名' },
+    { text: '你所经历的每一个深夜，都将成为照亮前路的光。', source: '佚名' },
+    { text: '不是因为有希望才坚持，而是坚持了才有希望。', source: '佚名' },
+    { text: '将来的你，一定会感谢现在拼命的自己。', source: '佚名' },
+    { text: '世上最重要的事，不在于我们在何处，而在于我们朝着什么方向走。', source: '奥利弗·温德尔·霍姆斯' },
+    { text: '每一个优秀的人，都有一段沉默的时光。', source: '佚名' },
+    { text: '宝剑锋从磨砺出，梅花香自苦寒来。', source: '《警世贤文》' },
+    { text: '长风破浪会有时，直挂云帆济沧海。', source: '李白' },
+    { text: '千里之行，始于足下。', source: '老子' },
+    { text: '博观而约取，厚积而薄发。', source: '苏轼' },
+    { text: '业精于勤，荒于嬉；行成于思，毁于随。', source: '韩愈' },
+    { text: '天行健，君子以自强不息。', source: '《周易》' },
+    { text: '路漫漫其修远兮，吾将上下而求索。', source: '屈原' },
+    { text: '不经一番寒彻骨，怎得梅花扑鼻香。', source: '黄檗禅师' },
+    { text: '三更灯火五更鸡，正是男儿读书时。', source: '颜真卿' },
+    { text: '古之立大事者，不惟有超世之才，亦必有坚忍不拔之志。', source: '苏轼' },
+    { text: '志之所趋，无远弗届，穷山距海，不能限也。', source: '《格言联璧》' },
+    { text: '千淘万漉虽辛苦，吹尽狂沙始到金。', source: '刘禹锡' },
+    { text: '纸上得来终觉浅，绝知此事要躬行。', source: '陆游' },
+    { text: '盛年不重来，一日难再晨。及时当勉励，岁月不待人。', source: '陶渊明' },
+    { text: '书山有路勤为径，学海无涯苦作舟。', source: '韩愈' },
+    { text: '你背单词时，阿拉斯加的鳕鱼正跃出水面。', source: '佚名' },
+    { text: '今天翻的是书，明天数的是钱。', source: '佚名' },
+    { text: '当你的才华还撑不起你的野心时，请静下心来学习。', source: '莫言' },
+    { text: '人生没有白走的路，每一步都算数。', source: '佚名' },
+    { text: '乾坤未定，你我皆是黑马。', source: '佚名' },
+    { text: '半山腰太挤了，我想去山顶看看。', source: '佚名' },
+    { text: '努力只能及格，拼命才会优秀。', source: '佚名' },
+    { text: '只有极其努力，才能看起来毫不费力。', source: '佚名' },
+  ];
+
+  // ── DOM refs ──
+  const daysEl = document.getElementById('days');
+  const hoursEl = document.getElementById('hours');
+  const minutesEl = document.getElementById('minutes');
+  const secondsEl = document.getElementById('seconds');
+  const progressFill = document.getElementById('progressFill');
+  const progressPercent = document.getElementById('progressPercent');
+  const prepDaysEl = document.getElementById('prepDays');
+  const quoteText = document.getElementById('quoteText');
+  const quoteSource = document.getElementById('quoteSource');
+
+  // ── Track previous seconds for pulse animation ──
+  let prevSeconds = -1;
+
+  function pad(n, len) {
+    return String(n).padStart(len, '0');
+  }
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = EXAM_DATE - now;
+
+    if (diff <= 0) {
+      daysEl.textContent = '000';
+      hoursEl.textContent = '00';
+      minutesEl.textContent = '00';
+      secondsEl.textContent = '00';
+      progressFill.style.width = '100%';
+      progressPercent.textContent = '100%';
+      prepDaysEl.textContent = '考试已至，愿你从容落笔。';
+      quoteText.textContent = '春风得意马蹄疾，一日看尽长安花。';
+      quoteSource.textContent = '孟郊《登科后》';
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    daysEl.textContent = pad(days, 3);
+    hoursEl.textContent = pad(hours, 2);
+    minutesEl.textContent = pad(minutes, 2);
+    secondsEl.textContent = pad(seconds, 2);
+
+    // Pulse on seconds change
+    if (prevSeconds !== -1 && seconds !== prevSeconds) {
+      secondsEl.classList.remove('pulse');
+      void secondsEl.offsetWidth; // reflow
+      secondsEl.classList.add('pulse');
+    }
+    prevSeconds = seconds;
+  }
+
+  function updateProgress() {
+    const now = new Date();
+    const totalDuration = EXAM_DATE - PREP_START;
+    const elapsed = now - PREP_START;
+    const percent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
+    const elapsedDays = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+
+    progressFill.style.width = percent + '%';
+    progressPercent.textContent = percent + '%';
+
+    if (elapsedDays > 0) {
+      prepDaysEl.textContent = '今天是备考第 ' + elapsedDays + ' 天';
+    } else {
+      prepDaysEl.textContent = '备考尚未开始，提前规划，从容出发';
+    }
+  }
+
+  function getDailyQuote() {
+    const dayOfYear = Math.floor(
+      (Date.now() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)
+    );
+    const q = quotes[dayOfYear % quotes.length];
+    quoteText.textContent = q.text;
+    quoteSource.textContent = '—— ' + q.source;
+  }
+
+  // ── Focus mode toggle ──
+  let focusMode = false;
+  document.getElementById('focusToggle').addEventListener('click', function() {
+    focusMode = !focusMode;
+    document.body.classList.toggle('focus-mode', focusMode);
+    this.textContent = focusMode ? '退出专注' : '专注模式';
+  });
+
+  // Also toggle with double-click anywhere
+  document.addEventListener('dblclick', function(e) {
+    if (e.target === document.body || e.target.classList.contains('container')) {
+      focusMode = !focusMode;
+      document.body.classList.toggle('focus-mode', focusMode);
+      document.getElementById('focusToggle').textContent = focusMode ? '退出专注' : '专注模式';
+    }
+  });
+
+  // ── Init ──
+  updateCountdown();
+  updateProgress();
+  getDailyQuote();
+  setInterval(updateCountdown, 1000);
+  setInterval(updateProgress, 60000); // update progress every minute
+})();
+</script>
+</body>
+</html>
