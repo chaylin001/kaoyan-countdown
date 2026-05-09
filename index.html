@@ -800,8 +800,9 @@
   // ── Mother's Day Easter Egg (2026-05-10 only) ──
   (function() {
     var now = new Date();
-    // 用中国时区判断，防止手机时区不对
-    var cn = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+    // 用 UTC+8 判断中国日期，兼容所有浏览器
+    var utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    var cn = new Date(utc + 8 * 3600000);
     var isToday = (cn.getFullYear() === 2026 && cn.getMonth() === 4 && cn.getDate() === 10);
     if (isToday) {
       var overlay = document.createElement('div');
