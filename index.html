@@ -629,9 +629,17 @@
     }
   });
 
-  // ── Install (Android Chrome PWA prompt + iOS hint) ──
+  // ── Install button ──
   const installBtn = document.getElementById('installBtn');
   let deferredPrompt = null;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent) || isIOS;
+  const isStandalone = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+  // Always show button on mobile (not in standalone mode)
+  if (isMobile && !isStandalone) {
+    installBtn.style.display = 'flex';
+  }
 
   window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
@@ -641,16 +649,27 @@
 
   installBtn.addEventListener('click', function() {
     if (deferredPrompt) {
+      // Android Chrome: trigger native install dialog
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then(function(result) {
-        installBtn.style.display = result.outcome === 'accepted' ? 'none' : 'flex';
+        if (result.outcome === 'accepted') {
+          installBtn.style.display = 'none';
+        }
         deferredPrompt = null;
       });
-    } else {
-      // iOS fallback: show the share-sheet hint
+    } else if (isIOS) {
+      // iOS: show share-sheet hint
       const hint = document.getElementById('iosHint');
       hint.classList.add('show');
       setTimeout(function() { hint.classList.remove('show'); }, 8000);
+    } else {
+      // Android but no beforeinstallprompt: show manual instructions
+      installBtn.textContent = '请点浏览器菜单 → 添加到主屏幕';
+      installBtn.style.opacity = '0.8';
+      setTimeout(function() {
+        installBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/><rect x="4" y="2" width="16" height="2" rx="1"/></svg> 添加到主屏幕';
+        installBtn.style.opacity = '';
+      }, 3000);
     }
   });
 
@@ -659,18 +678,13 @@
     deferredPrompt = null;
   });
 
-  (function() {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isStandalone = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-    if (isIOS && !isStandalone) {
-      installBtn.style.display = 'flex';
-      installBtn.textContent = '添加到主屏幕';
-      const hint = document.getElementById('iosHint');
-      setTimeout(function() { hint.classList.add('show'); }, 2000);
-      setTimeout(function() { hint.classList.remove('show'); }, 10000);
-      hint.addEventListener('click', function() { hint.classList.remove('show'); });
-    }
-  })();
+  // iOS hint banner
+  if (isIOS && !isStandalone) {
+    const hint = document.getElementById('iosHint');
+    setTimeout(function() { hint.classList.add('show'); }, 2000);
+    setTimeout(function() { hint.classList.remove('show'); }, 10000);
+    hint.addEventListener('click', function() { hint.classList.remove('show'); });
+  }
 
   // ── Init ──
   updateCountdown();
