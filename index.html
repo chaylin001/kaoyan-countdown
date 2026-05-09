@@ -260,6 +260,37 @@
     letter-spacing: 0.08em;
   }
 
+  /* ── Install button ── */
+  .install-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 auto;
+    padding: 0.55rem 1.4rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    animation: fadeUp 0.8s 0.5s ease-out both;
+  }
+  .install-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .install-btn:active {
+    transform: scale(0.96);
+  }
+  .install-btn svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
   /* ── Quote ── */
   .quote-section {
     text-align: center;
@@ -433,6 +464,12 @@
     <div class="prep-days" id="prepDays">今天是备考第 1 天</div>
   </div>
 
+  <!-- Install button -->
+  <button class="install-btn" id="installBtn" style="display:none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/><rect x="4" y="2" width="16" height="2" rx="1"/></svg>
+    添加到主屏幕
+  </button>
+
   <!-- Quote -->
   <div class="quote-section">
     <div class="quote-mark">"</div>
@@ -592,11 +629,42 @@
     }
   });
 
-  // ── iOS install hint ──
+  // ── Install (Android Chrome PWA prompt + iOS hint) ──
+  const installBtn = document.getElementById('installBtn');
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'flex';
+  });
+
+  installBtn.addEventListener('click', function() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(result) {
+        installBtn.style.display = result.outcome === 'accepted' ? 'none' : 'flex';
+        deferredPrompt = null;
+      });
+    } else {
+      // iOS fallback: show the share-sheet hint
+      const hint = document.getElementById('iosHint');
+      hint.classList.add('show');
+      setTimeout(function() { hint.classList.remove('show'); }, 8000);
+    }
+  });
+
+  window.addEventListener('appinstalled', function() {
+    installBtn.style.display = 'none';
+    deferredPrompt = null;
+  });
+
   (function() {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isStandalone = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
     if (isIOS && !isStandalone) {
+      installBtn.style.display = 'flex';
+      installBtn.textContent = '添加到主屏幕';
       const hint = document.getElementById('iosHint');
       setTimeout(function() { hint.classList.add('show'); }, 2000);
       setTimeout(function() { hint.classList.remove('show'); }, 10000);
