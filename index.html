@@ -617,6 +617,9 @@
   <div class="footer">研途漫漫 · 功不唐捐</div>
 </div>
 
+<!-- Mother's Day entry button -->
+<div class="mothers-day-entry" id="mothersDayEntry" style="display:none" title="母亲节祝福">&#10084;&#65039;</div>
+
 <div class="focus-hint" id="focusToggle" title="点击切换专注模式">专注模式</div>
 
 <!-- iOS install hint -->
@@ -854,15 +857,12 @@
 
     if (isToday) {
       showCard();
-      var entry = document.createElement('div');
-      entry.className = 'mothers-day-entry';
-      entry.innerHTML = '&#10084;&#65039;';
-      entry.title = '母亲节祝福';
+      var entry = document.getElementById('mothersDayEntry');
+      entry.style.display = 'flex';
       entry.addEventListener('click', function(e) {
         e.stopPropagation();
         showCard();
       });
-      document.body.appendChild(entry);
     }
   })();
 
